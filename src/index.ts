@@ -1,2 +1,8 @@
-// matrix-rain-react entry point
-export {}
+export type {
+  MatrixRainConfig,
+  ScanLineConfig,
+  DecoratorConfig,
+  MatrixConfig,
+  MatrixContextValue,
+  MatrixProviderProps
+} from './types'
