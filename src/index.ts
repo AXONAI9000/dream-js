@@ -6,3 +6,6 @@ export type {
   MatrixContextValue,
   MatrixProviderProps
 } from './types'
+
+export { useMatrix } from './hooks/useMatrix'
+export { MatrixContext } from './context/MatrixContext'
