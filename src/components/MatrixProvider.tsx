@@ -1,5 +1,7 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { MatrixContext } from '../context/MatrixContext'
+import { MatrixRain } from './MatrixRain'
+import { ScanLine } from './ScanLine'
 import type { MatrixProviderProps, MatrixConfig, MatrixContextValue } from '../types'
 
 const defaultConfig: MatrixConfig = {
@@ -34,6 +36,7 @@ export function MatrixProvider({
 }: MatrixProviderProps) {
   const [isActive, setIsActive] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
+  const [isActivating, setIsActivating] = useState(true)
 
   const config = useMemo(() => ({
     rain: { ...defaultConfig.rain, ...userConfig?.rain },
@@ -41,8 +44,21 @@ export function MatrixProvider({
     decorator: { ...defaultConfig.decorator, ...userConfig?.decorator }
   }), [userConfig])
 
+  // 管理 body 的 class
+  useEffect(() => {
+    if (isActive) {
+      document.body.classList.add('matrix-active')
+    } else {
+      document.body.classList.remove('matrix-active')
+    }
+    return () => {
+      document.body.classList.remove('matrix-active')
+    }
+  }, [isActive])
+
   const startTransition = useCallback((toActive: boolean) => {
     setIsTransitioning(true)
+    setIsActivating(toActive)
     onTransitionStart?.()
 
     setTimeout(() => {
@@ -83,6 +99,12 @@ export function MatrixProvider({
 
   return (
     <MatrixContext.Provider value={value}>
+      <MatrixRain config={config.rain!} isActive={isActive || isTransitioning} />
+      <ScanLine
+        config={config.scanLine!}
+        isTransitioning={isTransitioning}
+        isActivating={isActivating}
+      />
       {children}
     </MatrixContext.Provider>
   )
