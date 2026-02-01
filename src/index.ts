@@ -9,3 +9,4 @@ export type {
 
 export { useMatrix } from './hooks/useMatrix'
 export { MatrixContext } from './context/MatrixContext'
+export { MatrixProvider } from './components/MatrixProvider'
