@@ -1,3 +1,5 @@
+import './styles/matrix.css'
+
 export type {
   MatrixRainConfig,
   ScanLineConfig,

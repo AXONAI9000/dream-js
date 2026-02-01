@@ -1,0 +1,159 @@
+/* matrix-rain-react styles */
+
+/* 心跳脉冲动画 - 真实心跳节奏 */
+@keyframes heartbeat-pulse {
+  0% {
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    border-color: rgba(0, 255, 0, 0.5);
+  }
+  /* 第一次跳动 */
+  14% {
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.9);
+    border-color: rgba(0, 255, 0, 1);
+  }
+  28% {
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.4);
+    border-color: rgba(0, 255, 0, 0.6);
+  }
+  /* 第二次跳动（稍弱） */
+  42% {
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.7);
+    border-color: rgba(0, 255, 0, 0.9);
+  }
+  /* 休息期 */
+  55%, 100% {
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+    border-color: rgba(0, 255, 0, 0.5);
+  }
+}
+
+/* 扫描线动画 */
+@keyframes scan-line-move {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(100vh);
+  }
+}
+
+@keyframes scan-line-move-reverse {
+  from {
+    transform: translateY(100vh);
+  }
+  to {
+    transform: translateY(-100%);
+  }
+}
+
+/* 基础科技风样式 */
+.matrix-active {
+  background-color: #000 !important;
+  color: #00ff00 !important;
+}
+
+.matrix-active * {
+  border-color: rgba(0, 255, 0, 0.5);
+}
+
+/* 卡片和面板的心跳效果 */
+.matrix-active .card,
+.matrix-active .panel,
+.matrix-active [class*="card"],
+.matrix-active [class*="panel"],
+.matrix-active [class*="box"],
+.matrix-active section,
+.matrix-active article {
+  background-color: rgba(0, 0, 0, 0.8) !important;
+  border: 1px solid rgba(0, 255, 0, 0.5);
+  animation: heartbeat-pulse 1.2s ease-in-out infinite;
+}
+
+/* 错开动画延迟，让心跳不同步 */
+.matrix-active .card:nth-child(2n),
+.matrix-active [class*="card"]:nth-child(2n) {
+  animation-delay: 0.1s;
+}
+
+.matrix-active .card:nth-child(3n),
+.matrix-active [class*="card"]:nth-child(3n) {
+  animation-delay: 0.2s;
+}
+
+.matrix-active .card:nth-child(4n),
+.matrix-active [class*="card"]:nth-child(4n) {
+  animation-delay: 0.3s;
+}
+
+/* 文字发光效果 */
+.matrix-active h1,
+.matrix-active h2,
+.matrix-active h3,
+.matrix-active h4,
+.matrix-active h5,
+.matrix-active h6 {
+  color: #00ff00 !important;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+.matrix-active p,
+.matrix-active span,
+.matrix-active div,
+.matrix-active li {
+  color: #00ff00 !important;
+}
+
+/* 按钮样式 */
+.matrix-active button,
+.matrix-active [class*="btn"] {
+  background-color: transparent !important;
+  border: 1px solid #00ff00 !important;
+  color: #00ff00 !important;
+  animation: heartbeat-pulse 1.2s ease-in-out infinite;
+}
+
+.matrix-active button:hover,
+.matrix-active [class*="btn"]:hover {
+  background-color: rgba(0, 255, 0, 0.2) !important;
+}
+
+/* 输入框样式 */
+.matrix-active input,
+.matrix-active textarea,
+.matrix-active select {
+  background-color: rgba(0, 0, 0, 0.8) !important;
+  border: 1px solid rgba(0, 255, 0, 0.5) !important;
+  color: #00ff00 !important;
+}
+
+.matrix-active input:focus,
+.matrix-active textarea:focus,
+.matrix-active select:focus {
+  outline: none;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+/* 表格样式 */
+.matrix-active table {
+  border-color: rgba(0, 255, 0, 0.5);
+}
+
+.matrix-active th,
+.matrix-active td {
+  border-color: rgba(0, 255, 0, 0.3) !important;
+  color: #00ff00 !important;
+}
+
+.matrix-active th {
+  background-color: rgba(0, 255, 0, 0.1) !important;
+}
+
+/* 链接样式 */
+.matrix-active a {
+  color: #00ff00 !important;
+  text-decoration: none;
+}
+
+.matrix-active a:hover {
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+}
