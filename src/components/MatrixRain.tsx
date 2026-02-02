@@ -4,6 +4,7 @@ import type { MatrixRainConfig } from '../types'
 interface MatrixRainProps {
   config: MatrixRainConfig
   isActive: boolean
+  clipHeight?: number // 裁剪高度百分比 (0-100)
 }
 
 interface Drop {
@@ -13,7 +14,7 @@ interface Drop {
   chars: string[]
 }
 
-export function MatrixRain({ config, isActive }: MatrixRainProps) {
+export function MatrixRain({ config, isActive, clipHeight = 100 }: MatrixRainProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animationRef = useRef<number>()
   const dropsRef = useRef<Drop[]>([])
@@ -138,7 +139,8 @@ export function MatrixRain({ config, isActive }: MatrixRainProps) {
         width: '100%',
         height: '100%',
         zIndex: -1,
-        pointerEvents: 'none'
+        pointerEvents: 'none',
+        clipPath: `inset(0 0 ${100 - clipHeight}% 0)`
       }}
     />
   )

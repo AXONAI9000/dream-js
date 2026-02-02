@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { MatrixContext } from '../context/MatrixContext'
 import { MatrixRain } from './MatrixRain'
 import { ScanLine } from './ScanLine'
@@ -36,7 +36,9 @@ export function MatrixProvider({
 }: MatrixProviderProps) {
   const [isActive, setIsActive] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
-  const [isActivating, setIsActivating] = useState(true)
+  // 扫描线位置百分比 (0-100)
+  const [scanProgress, setScanProgress] = useState(0)
+  const animationRef = useRef<number>()
 
   const config = useMemo(() => ({
     rain: { ...defaultConfig.rain, ...userConfig?.rain },
@@ -58,20 +60,50 @@ export function MatrixProvider({
 
   const startTransition = useCallback((toActive: boolean) => {
     setIsTransitioning(true)
-    setIsActivating(toActive)
     onTransitionStart?.()
 
-    setTimeout(() => {
-      setIsActive(toActive)
-      setIsTransitioning(false)
-      onTransitionEnd?.()
+    const duration = config.scanLine?.duration ?? 1500
+    const startTime = performance.now()
+    const startProgress = toActive ? 0 : 100
+
+    // 使用 requestAnimationFrame 来平滑更新进度
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime
+      const progress = Math.min(elapsed / duration, 1)
+
       if (toActive) {
-        onActivate?.()
+        setScanProgress(progress * 100)
       } else {
-        onDeactivate?.()
+        setScanProgress(100 - progress * 100)
       }
-    }, config.scanLine?.duration ?? 1500)
+
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate)
+      } else {
+        setIsActive(toActive)
+        setIsTransitioning(false)
+        setScanProgress(toActive ? 100 : 0)
+        onTransitionEnd?.()
+        if (toActive) {
+          onActivate?.()
+        } else {
+          onDeactivate?.()
+        }
+      }
+    }
+
+    setScanProgress(startProgress)
+    animationRef.current = requestAnimationFrame(animate)
   }, [config.scanLine?.duration, onActivate, onDeactivate, onTransitionStart, onTransitionEnd])
+
+  // 清理动画
+  useEffect(() => {
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+      }
+    }
+  }, [])
 
   const toggle = useCallback(() => {
     if (isTransitioning) return
@@ -97,13 +129,37 @@ export function MatrixProvider({
     deactivate
   }), [isActive, isTransitioning, config, toggle, activate, deactivate])
 
+  // 计算裁剪区域：激活时从上往下扫，关闭时从下往上扫
+  const clipHeight = isTransitioning ? scanProgress : (isActive ? 100 : 0)
+
   return (
     <MatrixContext.Provider value={value}>
-      <MatrixRain config={config.rain!} isActive={isActive || isTransitioning} />
+      {/* 黑色背景层 - 跟随扫描进度 */}
+      {(isTransitioning || isActive) && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: `${clipHeight}%`,
+            backgroundColor: '#000',
+            zIndex: -2,
+            pointerEvents: 'none'
+          }}
+        />
+      )}
+      {/* 光雨效果 - 被裁剪到扫描线上方 */}
+      <MatrixRain
+        config={config.rain!}
+        isActive={isActive || isTransitioning}
+        clipHeight={clipHeight}
+      />
+      {/* 扫描线 */}
       <ScanLine
         config={config.scanLine!}
         isTransitioning={isTransitioning}
-        isActivating={isActivating}
+        scanProgress={scanProgress}
       />
       {children}
     </MatrixContext.Provider>
