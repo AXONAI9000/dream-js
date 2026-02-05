@@ -18,6 +18,7 @@ export function MatrixRain({ config, isActive, clipHeight = 100 }: MatrixRainPro
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animationRef = useRef<number>()
   const dropsRef = useRef<Drop[]>([])
+  const resizeTimeoutRef = useRef<number>()
 
   const {
     color = '#00ff00',
@@ -39,14 +40,15 @@ export function MatrixRain({ config, isActive, clipHeight = 100 }: MatrixRainPro
     const canvas = canvasRef.current
     if (!canvas) return
 
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext('2d', { alpha: false })
     if (!ctx) return
 
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-      initDrops()
-    }
+    // 预计算缓存值，避免每帧重复创建
+    const fontStyle = `${fontSize}px monospace`
+    const fadeStyle = `rgba(0, 0, 0, ${fadeSpeed})`
+    const tailColor = `${color}88`
+    const charArray = characters.split('')
+    const charLen = charArray.length
 
     const initDrops = () => {
       const columns = Math.floor(canvas.width / fontSize)
@@ -62,20 +64,34 @@ export function MatrixRain({ config, isActive, clipHeight = 100 }: MatrixRainPro
       }
     }
 
-    const getRandomChar = () => {
-      return characters[Math.floor(Math.random() * characters.length)]
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+      initDrops()
+    }
+
+    // 防抖处理 resize 事件
+    const debouncedResize = () => {
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current)
+      }
+      resizeTimeoutRef.current = window.setTimeout(resizeCanvas, 150)
     }
 
     const draw = () => {
+      const drops = dropsRef.current
+      const canvasHeight = canvas.height
+      const canvasWidth = canvas.width
+
       // 半透明黑色覆盖，产生尾迹效果
-      ctx.fillStyle = `rgba(0, 0, 0, ${fadeSpeed})`
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      ctx.fillStyle = fadeStyle
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight)
 
-      ctx.font = `${fontSize}px monospace`
+      ctx.font = fontStyle
 
-      dropsRef.current.forEach(drop => {
-        // 绘制字符
-        const char = getRandomChar()
+      for (let i = 0, len = drops.length; i < len; i++) {
+        const drop = drops[i]
+        const char = charArray[(Math.random() * charLen) | 0]
 
         // 头部字符 - 最亮
         ctx.fillStyle = '#fff'
@@ -83,27 +99,27 @@ export function MatrixRain({ config, isActive, clipHeight = 100 }: MatrixRainPro
 
         // 尾部字符 - 渐变绿色
         ctx.fillStyle = color
-        ctx.fillText(getRandomChar(), drop.x, drop.y - fontSize)
+        ctx.fillText(charArray[(Math.random() * charLen) | 0], drop.x, drop.y - fontSize)
 
         // 更暗的尾部
-        ctx.fillStyle = `${color}88`
-        ctx.fillText(getRandomChar(), drop.x, drop.y - fontSize * 2)
+        ctx.fillStyle = tailColor
+        ctx.fillText(charArray[(Math.random() * charLen) | 0], drop.x, drop.y - fontSize * 2)
 
         // 移动
         drop.y += fontSize * drop.speed
 
         // 重置到顶部
-        if (drop.y > canvas.height && Math.random() > 0.975) {
+        if (drop.y > canvasHeight && Math.random() > 0.975) {
           drop.y = 0
-          drop.x = Math.floor(Math.random() * (canvas.width / fontSize)) * fontSize
+          drop.x = ((Math.random() * (canvasWidth / fontSize)) | 0) * fontSize
         }
-      })
+      }
 
       animationRef.current = requestAnimationFrame(draw)
     }
 
     resizeCanvas()
-    window.addEventListener('resize', resizeCanvas)
+    window.addEventListener('resize', debouncedResize)
     draw()
 
     // 页面可见性处理
@@ -119,8 +135,11 @@ export function MatrixRain({ config, isActive, clipHeight = 100 }: MatrixRainPro
     document.addEventListener('visibilitychange', handleVisibilityChange)
 
     return () => {
-      window.removeEventListener('resize', resizeCanvas)
+      window.removeEventListener('resize', debouncedResize)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current)
+      }
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current)
       }
